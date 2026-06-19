@@ -358,5 +358,5 @@ max_year = filtered["order_year"].max()
 st.caption(
     f"Showing {row_count:,} rows • "
     f"{min_year}–{max_year} • "
-    f"Built by Mohammed minshan"
+    f"Built by mohamed nihad"
 )

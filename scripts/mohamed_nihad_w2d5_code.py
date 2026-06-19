@@ -15,7 +15,7 @@ st.set_page_config(
 @st.cache_data
 def load_data():
     return pd.read_csv(
-        r"C:\Users\moham\OneDrive\Desktop\project_4.1\Output\superstore_cleaned.csv",
+        r"Output\superstore_cleaned.csv",
         parse_dates=["order_date", "ship_date"]
     )
 
@@ -355,6 +355,82 @@ with tab4:
     with st.expander("show raw data(first 50 rows)"):
         st.dataframe(filtered.head(50), use_container_width=True)
 
+
+
+
+
+
+
+# Prepare charts for export form
+bar_sales = filtered.groupby("category")["sales"].sum().sort_values(ascending=False)
+fig_bar, ax = plt.subplots(figsize=(7, 4))
+ax.barh(bar_sales.index.astype(str), bar_sales.to_numpy(dtype=float), color="#3B82F6")
+ax.set_title("Sales by Category")
+ax.set_xlabel("Sales ($)")
+ax.set_ylabel("Category")
+fig_bar.tight_layout()
+
+monthly_sales_export = (
+    filtered.groupby(filtered["order_date"].dt.to_period("M"))["sales"]
+    .sum()
+    .reset_index()
+)
+monthly_sales_export["order_month"] = monthly_sales_export["order_date"].astype(str)
+
+fig_line = px.line(
+    monthly_sales_export,
+    x="order_month",
+    y="sales",
+    title="Monthly Sales Trend"
+)
+
+fig_scatter = px.scatter(
+    filtered,
+    x="sales",
+    y="profit",
+    color="category",
+    size="quantity",
+    hover_data=["sub_category"],
+    title="Sales vs Profit by Category"
+)
+
+fig_donut = px.pie(
+    filtered.groupby("region")["profit"].sum().reset_index(),
+    names="region",
+    values="profit",
+    hole=0.4,
+    title="Region Share of Total Profit"
+)
+
+with st.form("export"):
+    chart_type = st.selectbox(
+        "Select chart to display",
+        [
+            "Bar Chart",
+            "Line Chart",
+            "Scatter Plot",
+            "Donut Chart"
+        ]
+    )
+
+    submitted = st.form_submit_button("Generate Chart")
+
+if submitted:
+    if chart_type == "Bar Chart":
+        st.pyplot(fig_bar)
+
+    elif chart_type == "Line Chart":
+        st.plotly_chart(fig_line, use_container_width=True)
+
+    elif chart_type == "Scatter Plot":
+        st.plotly_chart(fig_scatter, use_container_width=True)
+
+    elif chart_type == "Donut Chart":
+        st.plotly_chart(fig_donut, use_container_width=True)
+
+
+
+        
 
 # =========================
 # TASK 6 - FOOTER CAPTION
